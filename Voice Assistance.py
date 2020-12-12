@@ -7,6 +7,7 @@ import requests
 import wikipedia
 from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
+import smtplib
 
 engine=pyt.init('sapi5')
 voices=engine.getProperty('voices')
@@ -44,8 +45,17 @@ def play_audio(song_name):
     links = soup.findAll('a', {'class': 'rt_arw'})
     webbrowser.open(links[0]['href'])
 
+def sendEmail(to,content):
+    server = smtplib.SMTP('smtp.gmail.com',587)
+    server.ehlo()
+    server.starttls()
+    server.login('ur___@gmail.com','ur____Password')
+    server.sendmail('ur___@gmail.com',to,content)
+    server.close()
+
 if __name__ == "__main__":
     notifier.show_toast("Starting Voice Assitance....")
+    mail_dict={'gaurav pandey':'gauravpan420@gmail.com'}
     while True:
         query=takecommand().lower()
         if 'search' in query:
@@ -62,7 +72,7 @@ if __name__ == "__main__":
                 speak(responce)
 
 
-        if 'open' in query:
+        elif 'open' in query:
             if 'notepad' in query:
                 os.startfile('C:\\Program Files (x86)\\Notepad++\\notepad++.exe')
             elif 'microsoft' in query:
@@ -73,10 +83,31 @@ if __name__ == "__main__":
                 elif 'power' and 'point' in query:
                     os.startfile('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Microsoft Office\\Microsoft Office PowerPoint 2007')
 
-        if 'play' in query:
+        elif 'play' in query:
             if 'song' in query:
                 query=query.replace('bye','')
                 query=query.replace('play','')
                 query=query.replace('song','')
                 query=query.replace('in','')
                 play_audio(query)
+
+        elif 'send' in query:
+            if 'email' in query:
+                query = query.replace('send','')
+                query = query.replace('email','')
+                query = query.replace('to','')
+                query=query.strip()
+                if query not in mail_dict:
+                    notifier.show_toast('Sorry we do not have this contact')
+                else:
+                    to = mail_dict[query]
+                    notifier.show_toast('send mail to ' + to)
+                    try:
+                        notifier.show_toast('Speak the content')
+                        content=takecommand()
+                        sendEmail(to,content)
+                        notifier.show_toast('Email has been sent')
+                    except Exception as e:
+                        speak("Sorry,I can't send the mail to "+query)
+
+
